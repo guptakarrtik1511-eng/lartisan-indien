@@ -1,0 +1,1439 @@
+# Lartisan Indien - Consolidated Source Code
+
+===== FILE: app/admin/products/page.tsx =====
+import { AdminProductManager } from "@/components/admin-product-manager";
+
+export default function AdminProductsPage() {
+  return (
+    <div className="space-y-6">
+      <header>
+        <h1 className="text-3xl font-bold tracking-tight text-stone-900">Admin product management</h1>
+        <p className="mt-2 text-stone-600">
+          Create and edit handcrafted product listings for this MVP. Data is persisted in browser storage for demo use.
+        </p>
+      </header>
+      <AdminProductManager />
+    </div>
+  );
+}
+
+
+===== FILE: app/cart/page.tsx =====
+"use client";
+
+import Link from "next/link";
+import { useCart } from "@/components/cart-provider";
+import { formatPrice } from "@/lib/format";
+
+export default function CartPage() {
+  const { items, subtotal, updateQuantity, removeFromCart } = useCart();
+
+  return (
+    <div className="space-y-6">
+      <header>
+        <h1 className="text-3xl font-bold tracking-tight text-stone-900">Shopping cart</h1>
+        <p className="mt-2 text-stone-600">Review your handcrafted picks before checkout.</p>
+      </header>
+
+      {items.length === 0 ? (
+        <div className="rounded-2xl border border-dashed border-stone-300 bg-white p-10 text-center">
+          <p className="text-stone-600">Your cart is empty.</p>
+          <Link href="/products" className="mt-3 inline-block text-sm font-semibold text-amber-700 hover:text-amber-800">
+            Browse products
+          </Link>
+        </div>
+      ) : (
+        <div className="grid gap-6 lg:grid-cols-[1.5fr_1fr]">
+          <section className="space-y-3">
+            {items.map(({ product, quantity }) => (
+              <article key={product.id} className="rounded-2xl border border-stone-200 bg-white p-4 shadow-sm">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <h2 className="font-semibold text-stone-900">{product.name}</h2>
+                    <p className="text-sm text-stone-600">{formatPrice(product.price)}</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => updateQuantity(product.id, quantity - 1)}
+                      className="h-8 w-8 rounded border border-stone-300 text-stone-700"
+                    >
+                      -
+                    </button>
+                    <span className="w-8 text-center text-sm font-semibold">{quantity}</span>
+                    <button
+                      type="button"
+                      onClick={() => updateQuantity(product.id, quantity + 1)}
+                      className="h-8 w-8 rounded border border-stone-300 text-stone-700"
+                    >
+                      +
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => removeFromCart(product.id)}
+                      className="rounded border border-red-200 px-3 py-1 text-xs font-semibold text-red-700"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                </div>
+              </article>
+            ))}
+          </section>
+
+          <aside className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
+            <h2 className="text-lg font-semibold text-stone-900">Order summary</h2>
+            <div className="mt-3 space-y-2 text-sm text-stone-600">
+              <p className="flex items-center justify-between">
+                <span>Subtotal</span>
+                <span className="font-semibold text-stone-900">{formatPrice(subtotal)}</span>
+              </p>
+              <p className="flex items-center justify-between">
+                <span>Shipping</span>
+                <span className="font-semibold text-stone-900">Free</span>
+              </p>
+              <p className="border-t border-stone-200 pt-2 text-base font-semibold text-stone-900">
+                Total: {formatPrice(subtotal)}
+              </p>
+            </div>
+            <Link
+              href="/checkout"
+              className="mt-4 block rounded-md bg-amber-700 px-4 py-2 text-center text-sm font-semibold text-white transition hover:bg-amber-800"
+            >
+              Proceed to checkout
+            </Link>
+          </aside>
+        </div>
+      )}
+    </div>
+  );
+}
+
+
+===== FILE: app/checkout/page.tsx =====
+"use client";
+
+import { FormEvent, useState } from "react";
+import Link from "next/link";
+import { useCart } from "@/components/cart-provider";
+import { formatPrice } from "@/lib/format";
+
+export default function CheckoutPage() {
+  const { items, subtotal, clearCart } = useCart();
+  const [submitted, setSubmitted] = useState(false);
+
+  const onSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setSubmitted(true);
+    clearCart();
+  };
+
+  if (submitted) {
+    return (
+      <div className="rounded-2xl border border-stone-200 bg-white p-8 text-center shadow-sm">
+        <h1 className="text-2xl font-bold text-stone-900">Order placed successfully</h1>
+        <p className="mt-2 text-stone-600">
+          Thank you for supporting Indian artisans. A confirmation message has been prepared for this demo flow.
+        </p>
+        <Link href="/products" className="mt-4 inline-block rounded-md bg-amber-700 px-4 py-2 text-sm font-semibold text-white">
+          Continue shopping
+        </Link>
+      </div>
+    );
+  }
+
+  return (
+    <div className="grid gap-6 lg:grid-cols-[1.2fr_1fr]">
+      <section className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm">
+        <h1 className="text-2xl font-bold text-stone-900">Checkout</h1>
+        <p className="mt-2 text-sm text-stone-600">Complete this mock checkout flow for the MVP demo.</p>
+        <form onSubmit={onSubmit} className="mt-5 space-y-4">
+          <div>
+            <label htmlFor="fullName" className="mb-1 block text-sm font-medium text-stone-700">
+              Full name
+            </label>
+            <input
+              id="fullName"
+              name="fullName"
+              required
+              className="w-full rounded-md border border-stone-300 px-3 py-2 text-sm focus:border-amber-600 focus:outline-none"
+            />
+          </div>
+          <div>
+            <label htmlFor="email" className="mb-1 block text-sm font-medium text-stone-700">
+              Email
+            </label>
+            <input
+              id="email"
+              type="email"
+              name="email"
+              required
+              className="w-full rounded-md border border-stone-300 px-3 py-2 text-sm focus:border-amber-600 focus:outline-none"
+            />
+          </div>
+          <div>
+            <label htmlFor="address" className="mb-1 block text-sm font-medium text-stone-700">
+              Shipping address
+            </label>
+            <textarea
+              id="address"
+              name="address"
+              rows={4}
+              required
+              className="w-full rounded-md border border-stone-300 px-3 py-2 text-sm focus:border-amber-600 focus:outline-none"
+            />
+          </div>
+          <button
+            type="submit"
+            disabled={items.length === 0}
+            className="rounded-md bg-amber-700 px-4 py-2 text-sm font-semibold text-white transition hover:bg-amber-800 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            Place order
+          </button>
+        </form>
+      </section>
+
+      <aside className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm">
+        <h2 className="text-lg font-semibold text-stone-900">Order details</h2>
+        {items.length === 0 ? (
+          <p className="mt-3 text-sm text-stone-600">Your cart is empty. Add products before checkout.</p>
+        ) : (
+          <>
+            <ul className="mt-3 space-y-2 text-sm text-stone-600">
+              {items.map((item) => (
+                <li key={item.product.id} className="flex items-start justify-between gap-3">
+                  <span>
+                    {item.product.name} × {item.quantity}
+                  </span>
+                  <span className="font-semibold text-stone-900">
+                    {formatPrice(item.product.price * item.quantity)}
+                  </span>
+                </li>
+              ))}
+            </ul>
+            <p className="mt-4 border-t border-stone-200 pt-3 text-base font-semibold text-stone-900">
+              Total: {formatPrice(subtotal)}
+            </p>
+          </>
+        )}
+      </aside>
+    </div>
+  );
+}
+
+
+===== FILE: app/globals.css =====
+@import "tailwindcss";
+
+:root {
+  --background: #f8f5f1;
+  --foreground: #1c1917;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Inter, "Segoe UI", sans-serif;
+}
+
+
+===== FILE: app/layout.tsx =====
+import type { Metadata } from "next";
+import { CartProvider } from "@/components/cart-provider";
+import { SiteHeader } from "@/components/site-header";
+import { appIdentity } from "@/lib/data";
+import "./globals.css";
+
+export const metadata: Metadata = {
+  title: "L’Artisan Indien (Hastkala)",
+  description: appIdentity,
+};
+
+export default function RootLayout({ children }: LayoutProps<"/">) {
+  return (
+    <html lang="en" className="h-full antialiased">
+      <body className="min-h-full bg-stone-50 text-stone-900">
+        <CartProvider>
+          <SiteHeader />
+          <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6 lg:px-8">{children}</main>
+        </CartProvider>
+      </body>
+    </html>
+  );
+}
+
+
+===== FILE: app/page.tsx =====
+import Image from "next/image";
+import Link from "next/link";
+import { ProductCard } from "@/components/product-card";
+import {
+  appIdentity,
+  artisans,
+  featuredCollections,
+  featuredProducts,
+  productCategories,
+} from "@/lib/data";
+
+export default function Home() {
+  return (
+    <div className="space-y-10">
+      <section className="rounded-3xl bg-gradient-to-r from-amber-100 via-orange-50 to-rose-100 p-6 sm:p-10">
+        <p className="text-sm font-semibold uppercase tracking-[0.2em] text-amber-700">Handcrafted in India</p>
+        <h1 className="mt-2 max-w-2xl text-3xl font-bold tracking-tight text-stone-900 sm:text-4xl">
+          Discover timeless Indian handicrafts from verified artisan clusters.
+        </h1>
+        <p className="mt-4 max-w-2xl text-stone-700">{appIdentity}</p>
+        <div className="mt-6 flex flex-wrap gap-3">
+          <Link
+            href="/products"
+            className="rounded-md bg-amber-700 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-amber-800"
+          >
+            Explore products
+          </Link>
+          <Link
+            href="/admin/products"
+            className="rounded-md border border-stone-300 bg-white px-5 py-2.5 text-sm font-semibold text-stone-700 transition hover:border-amber-500 hover:text-amber-700"
+          >
+            Manage listings
+          </Link>
+        </div>
+      </section>
+
+      <section>
+        <div className="mb-4 flex items-end justify-between gap-4">
+          <h2 className="text-2xl font-semibold text-stone-900">Featured collections</h2>
+          <Link href="/products" className="text-sm font-semibold text-amber-700 hover:text-amber-800">
+            Shop all products
+          </Link>
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {featuredCollections.map((collection) => (
+            <article key={collection.name} className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
+              <p className="text-xs font-semibold uppercase tracking-widest text-amber-700">Collection</p>
+              <h3 className="mt-2 text-lg font-semibold text-stone-900">{collection.name}</h3>
+              <p className="mt-1 text-sm text-stone-600">{collection.description}</p>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section>
+        <h2 className="mb-4 text-2xl font-semibold text-stone-900">Featured products</h2>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {featuredProducts.map((product) => (
+            <ProductCard key={product.id} product={product} />
+          ))}
+        </div>
+      </section>
+
+      <section>
+        <h2 className="mb-4 text-2xl font-semibold text-stone-900">Shop by craft</h2>
+        <div className="flex flex-wrap gap-3">
+          {productCategories.map((category) => (
+            <Link
+              key={category}
+              href="/products"
+              className="rounded-full border border-stone-300 bg-white px-4 py-2 text-sm font-semibold text-stone-700 transition hover:border-amber-500 hover:text-amber-700"
+            >
+              {category}
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      <section>
+        <h2 className="mb-4 text-2xl font-semibold text-stone-900">Artisan highlights</h2>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {artisans.map((artisan) => (
+            <article key={artisan.id} className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
+              <Image
+                src={artisan.avatar}
+                alt={artisan.name}
+                width={64}
+                height={64}
+                className="h-16 w-16 rounded-full border border-amber-100"
+              />
+              <h3 className="mt-3 font-semibold text-stone-900">{artisan.name}</h3>
+              <p className="text-sm text-amber-700">{artisan.specialty}</p>
+              <p className="text-sm text-stone-600">{artisan.region}</p>
+              <p className="mt-2 text-sm text-stone-600">{artisan.bio}</p>
+            </article>
+          ))}
+        </div>
+      </section>
+    </div>
+  );
+}
+
+
+===== FILE: app/products/[id]/page.tsx =====
+import Image from "next/image";
+import Link from "next/link";
+import { ProductCard } from "@/components/product-card";
+import {
+  getArtisanById,
+  getProductById,
+  getRelatedProducts,
+  products,
+} from "@/lib/data";
+import { formatPrice } from "@/lib/format";
+
+interface ProductDetailPageProps {
+  params: Promise<{ id: string }>;
+}
+
+export function generateStaticParams() {
+  return products.map((product) => ({ id: product.id }));
+}
+
+export default async function ProductDetailPage({ params }: ProductDetailPageProps) {
+  const { id } = await params;
+  const product = getProductById(id);
+
+  if (!product) {
+    return (
+      <div className="rounded-2xl border border-dashed border-stone-300 bg-white p-10 text-center">
+        <h1 className="text-2xl font-semibold text-stone-900">Product not found</h1>
+        <Link href="/products" className="mt-3 inline-block text-sm font-semibold text-amber-700 hover:text-amber-800">
+          Back to products
+        </Link>
+      </div>
+    );
+  }
+
+  const artisan = getArtisanById(product.artisanId);
+  const related = getRelatedProducts(product.id, product.category);
+
+  return (
+    <div className="space-y-8">
+      <section className="grid gap-6 lg:grid-cols-[1.1fr_1fr]">
+        <div className="space-y-3">
+          <Image
+            src={product.gallery[0]}
+            alt={product.name}
+            width={800}
+            height={600}
+            className="h-80 w-full rounded-2xl border border-stone-200 bg-white object-cover p-2"
+          />
+          <div className="grid grid-cols-3 gap-3">
+            {product.gallery.slice(1).map((image) => (
+              <Image
+                key={image}
+                src={image}
+                alt={`${product.name} view`}
+                width={800}
+                height={600}
+                className="h-24 w-full rounded-xl border border-stone-200 bg-white object-cover p-1"
+              />
+            ))}
+          </div>
+        </div>
+
+        <div className="space-y-4 rounded-2xl border border-stone-200 bg-white p-6 shadow-sm">
+          <p className="text-xs font-semibold uppercase tracking-wide text-amber-700">{product.category}</p>
+          <h1 className="text-3xl font-bold tracking-tight text-stone-900">{product.name}</h1>
+          <p className="text-2xl font-bold text-stone-900">{formatPrice(product.price)}</p>
+          <p className="text-sm text-stone-600">{product.description}</p>
+          <div>
+            <h2 className="text-sm font-semibold text-stone-900">Materials</h2>
+            <ul className="mt-2 list-inside list-disc text-sm text-stone-600">
+              {product.materials.map((material) => (
+                <li key={material}>{material}</li>
+              ))}
+            </ul>
+          </div>
+          <Link
+            href="/products"
+            className="inline-block rounded-md border border-stone-300 px-4 py-2 text-sm font-semibold text-stone-700 transition hover:border-amber-500 hover:text-amber-700"
+          >
+            Continue shopping
+          </Link>
+        </div>
+      </section>
+
+      {artisan ? (
+        <section className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm">
+          <h2 className="text-xl font-semibold text-stone-900">Meet the artisan</h2>
+          <div className="mt-3 flex flex-col gap-4 sm:flex-row sm:items-center">
+            <Image
+              src={artisan.avatar}
+              alt={artisan.name}
+              width={64}
+              height={64}
+              className="h-16 w-16 rounded-full border border-amber-100"
+            />
+            <div>
+              <h3 className="text-lg font-semibold text-stone-900">{artisan.name}</h3>
+              <p className="text-sm text-amber-700">{artisan.specialty}</p>
+              <p className="text-sm text-stone-600">{artisan.region}</p>
+              <p className="mt-1 text-sm text-stone-600">{artisan.bio}</p>
+            </div>
+          </div>
+        </section>
+      ) : null}
+
+      <section>
+        <h2 className="mb-4 text-xl font-semibold text-stone-900">Related products</h2>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {related.map((relatedProduct) => (
+            <ProductCard key={relatedProduct.id} product={relatedProduct} />
+          ))}
+        </div>
+      </section>
+    </div>
+  );
+}
+
+
+===== FILE: app/products/page.tsx =====
+import { ProductCatalog } from "@/components/product-catalog";
+
+export default function ProductListingPage() {
+  return <ProductCatalog initialCategory="All" />;
+}
+
+
+===== FILE: components/admin-product-manager.tsx =====
+"use client";
+
+import { ChangeEvent, FormEvent, useEffect, useState } from "react";
+import { productCategories, products } from "@/lib/data";
+
+type AdminProduct = {
+  id: string;
+  name: string;
+  category: string;
+  price: string;
+  description: string;
+};
+
+const storageKey = "lartisan-admin-products";
+
+const blankForm: AdminProduct = {
+  id: "",
+  name: "",
+  category: productCategories[0],
+  price: "",
+  description: "",
+};
+
+export function AdminProductManager() {
+  const [customProducts, setCustomProducts] = useState<AdminProduct[]>([]);
+  const [form, setForm] = useState<AdminProduct>(blankForm);
+  const [editingId, setEditingId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const saved = window.localStorage.getItem(storageKey);
+    if (saved) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setCustomProducts(JSON.parse(saved));
+    }
+  }, []);
+
+  useEffect(() => {
+    window.localStorage.setItem(storageKey, JSON.stringify(customProducts));
+  }, [customProducts]);
+
+  const onFieldChange = (
+    event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
+  ) => {
+    const { name, value } = event.target;
+    setForm((previous) => ({ ...previous, [name]: value }));
+  };
+
+  const resetForm = () => {
+    setForm(blankForm);
+    setEditingId(null);
+  };
+
+  const onSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    const normalized: AdminProduct = {
+      ...form,
+      id: editingId ?? `${form.name.toLowerCase().replaceAll(/[^a-z0-9]+/g, "-")}-${Date.now()}`,
+    };
+
+    if (editingId) {
+      setCustomProducts((previous) =>
+        previous.map((item) => (item.id === editingId ? normalized : item)),
+      );
+    } else {
+      setCustomProducts((previous) => [normalized, ...previous]);
+    }
+
+    resetForm();
+  };
+
+  const onEdit = (product: AdminProduct) => {
+    setForm(product);
+    setEditingId(product.id);
+  };
+
+  const onDelete = (id: string) => {
+    setCustomProducts((previous) => previous.filter((item) => item.id !== id));
+    if (editingId === id) {
+      resetForm();
+    }
+  };
+
+  return (
+    <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_1.3fr]">
+      <form onSubmit={onSubmit} className="space-y-4 rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
+        <h2 className="text-lg font-semibold text-stone-900">
+          {editingId ? "Edit handcrafted product" : "Create handcrafted product"}
+        </h2>
+        <p className="text-sm text-stone-600">
+          Save products locally for demo purposes without external services.
+        </p>
+        <div>
+          <label htmlFor="name" className="mb-1 block text-sm font-medium text-stone-700">
+            Product name
+          </label>
+          <input
+            id="name"
+            name="name"
+            value={form.name}
+            onChange={onFieldChange}
+            required
+            className="w-full rounded-md border border-stone-300 px-3 py-2 text-sm focus:border-amber-600 focus:outline-none"
+          />
+        </div>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <div>
+            <label htmlFor="category" className="mb-1 block text-sm font-medium text-stone-700">
+              Category
+            </label>
+            <select
+              id="category"
+              name="category"
+              value={form.category}
+              onChange={onFieldChange}
+              className="w-full rounded-md border border-stone-300 px-3 py-2 text-sm focus:border-amber-600 focus:outline-none"
+            >
+              {productCategories.map((category) => (
+                <option key={category} value={category}>
+                  {category}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label htmlFor="price" className="mb-1 block text-sm font-medium text-stone-700">
+              Price (INR)
+            </label>
+            <input
+              id="price"
+              name="price"
+              type="number"
+              min="0"
+              value={form.price}
+              onChange={onFieldChange}
+              required
+              className="w-full rounded-md border border-stone-300 px-3 py-2 text-sm focus:border-amber-600 focus:outline-none"
+            />
+          </div>
+        </div>
+        <div>
+          <label htmlFor="description" className="mb-1 block text-sm font-medium text-stone-700">
+            Description
+          </label>
+          <textarea
+            id="description"
+            name="description"
+            rows={4}
+            value={form.description}
+            onChange={onFieldChange}
+            required
+            className="w-full rounded-md border border-stone-300 px-3 py-2 text-sm focus:border-amber-600 focus:outline-none"
+          />
+        </div>
+        <div className="flex gap-2">
+          <button
+            type="submit"
+            className="rounded-md bg-amber-700 px-4 py-2 text-sm font-semibold text-white transition hover:bg-amber-800"
+          >
+            {editingId ? "Update" : "Create"} product
+          </button>
+          {editingId ? (
+            <button
+              type="button"
+              onClick={resetForm}
+              className="rounded-md border border-stone-300 px-4 py-2 text-sm font-semibold text-stone-700"
+            >
+              Cancel
+            </button>
+          ) : null}
+        </div>
+      </form>
+
+      <section className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
+        <h2 className="text-lg font-semibold text-stone-900">Current product listings</h2>
+        <p className="mb-4 text-sm text-stone-600">
+          Includes seeded handcrafted products and locally created entries.
+        </p>
+        <div className="space-y-3">
+          {customProducts.concat(
+            products.map((product) => ({
+              id: product.id,
+              name: product.name,
+              category: product.category,
+              price: String(product.price),
+              description: product.shortDescription,
+            })),
+          ).map((product) => (
+            <article key={product.id} className="rounded-xl border border-stone-200 p-3">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                  <h3 className="font-semibold text-stone-900">{product.name}</h3>
+                  <p className="text-xs uppercase tracking-wide text-amber-700">{product.category}</p>
+                  <p className="text-sm text-stone-600">₹{product.price}</p>
+                  <p className="text-sm text-stone-600">{product.description}</p>
+                </div>
+                {customProducts.some((item) => item.id === product.id) ? (
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => onEdit(product)}
+                      className="rounded border border-stone-300 px-3 py-1 text-xs font-semibold text-stone-700"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => onDelete(product.id)}
+                      className="rounded border border-red-200 px-3 py-1 text-xs font-semibold text-red-700"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                ) : (
+                  <span className="text-xs font-semibold text-stone-500">Seeded</span>
+                )}
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
+    </div>
+  );
+}
+
+
+===== FILE: components/cart-provider.tsx =====
+"use client";
+
+import { Product } from "@/lib/types";
+import {
+  createContext,
+  ReactNode,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
+
+interface CartItem {
+  product: Product;
+  quantity: number;
+}
+
+interface CartContextValue {
+  items: CartItem[];
+  itemCount: number;
+  subtotal: number;
+  addToCart: (product: Product) => void;
+  updateQuantity: (productId: string, quantity: number) => void;
+  removeFromCart: (productId: string) => void;
+  clearCart: () => void;
+}
+
+const CartContext = createContext<CartContextValue | undefined>(undefined);
+const storageKey = "lartisan-cart";
+
+export function CartProvider({ children }: { children: ReactNode }) {
+  const [items, setItems] = useState<CartItem[]>([]);
+
+  useEffect(() => {
+    const savedCart = window.localStorage.getItem(storageKey);
+    if (savedCart) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setItems(JSON.parse(savedCart));
+    }
+  }, []);
+
+  useEffect(() => {
+    window.localStorage.setItem(storageKey, JSON.stringify(items));
+  }, [items]);
+
+  const addToCart = (product: Product) => {
+    setItems((previous) => {
+      const existingItem = previous.find((item) => item.product.id === product.id);
+      if (existingItem) {
+        return previous.map((item) =>
+          item.product.id === product.id
+            ? { ...item, quantity: item.quantity + 1 }
+            : item,
+        );
+      }
+
+      return [...previous, { product, quantity: 1 }];
+    });
+  };
+
+  const updateQuantity = (productId: string, quantity: number) => {
+    if (quantity <= 0) {
+      setItems((previous) => previous.filter((item) => item.product.id !== productId));
+      return;
+    }
+
+    setItems((previous) =>
+      previous.map((item) =>
+        item.product.id === productId ? { ...item, quantity } : item,
+      ),
+    );
+  };
+
+  const removeFromCart = (productId: string) => {
+    setItems((previous) => previous.filter((item) => item.product.id !== productId));
+  };
+
+  const clearCart = () => {
+    setItems([]);
+  };
+
+  const value = useMemo(
+    () => ({
+      items,
+      itemCount: items.reduce((count, item) => count + item.quantity, 0),
+      subtotal: items.reduce(
+        (total, item) => total + item.product.price * item.quantity,
+        0,
+      ),
+      addToCart,
+      updateQuantity,
+      removeFromCart,
+      clearCart,
+    }),
+    [items],
+  );
+
+  return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
+}
+
+export const useCart = () => {
+  const context = useContext(CartContext);
+  if (!context) {
+    throw new Error("useCart must be used within a CartProvider");
+  }
+
+  return context;
+};
+
+
+===== FILE: components/product-card.tsx =====
+"use client";
+
+import Image from "next/image";
+import Link from "next/link";
+import { useCart } from "@/components/cart-provider";
+import { formatPrice } from "@/lib/format";
+import { Product } from "@/lib/types";
+
+export function ProductCard({ product }: { product: Product }) {
+  const { addToCart } = useCart();
+
+  return (
+    <article className="flex h-full flex-col overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-sm">
+      <div className="bg-amber-50 p-3">
+        <Image
+          src={product.image}
+          alt={product.name}
+          width={800}
+          height={600}
+          className="h-44 w-full rounded-xl object-cover"
+        />
+      </div>
+      <div className="flex flex-1 flex-col gap-3 p-4">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-wide text-amber-700">{product.category}</p>
+          <h3 className="text-lg font-semibold text-stone-900">{product.name}</h3>
+          <p className="text-sm text-stone-600">{product.shortDescription}</p>
+        </div>
+        <p className="text-base font-bold text-stone-900">{formatPrice(product.price)}</p>
+        <div className="mt-auto flex gap-2">
+          <Link
+            href={`/products/${product.id}`}
+            className="flex-1 rounded-md border border-stone-300 px-3 py-2 text-center text-sm font-medium text-stone-700 transition hover:border-amber-500 hover:text-amber-700"
+          >
+            View details
+          </Link>
+          <button
+            type="button"
+            onClick={() => addToCart(product)}
+            className="flex-1 rounded-md bg-amber-700 px-3 py-2 text-sm font-medium text-white transition hover:bg-amber-800"
+          >
+            Add to cart
+          </button>
+        </div>
+      </div>
+    </article>
+  );
+}
+
+
+===== FILE: components/product-catalog.tsx =====
+"use client";
+
+import { useMemo, useState } from "react";
+import { ProductCard } from "@/components/product-card";
+import { productCategories, products } from "@/lib/data";
+import { ProductCategory } from "@/lib/types";
+
+interface ProductCatalogProps {
+  initialCategory: "All" | ProductCategory;
+}
+
+export function ProductCatalog({ initialCategory }: ProductCatalogProps) {
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState<"All" | ProductCategory>(
+    initialCategory,
+  );
+
+  const filteredProducts = useMemo(() => {
+    return products.filter((product) => {
+      const matchesSearch =
+        product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        product.shortDescription.toLowerCase().includes(searchTerm.toLowerCase());
+
+      const matchesCategory =
+        selectedCategory === "All" || product.category === selectedCategory;
+
+      return matchesSearch && matchesCategory;
+    });
+  }, [searchTerm, selectedCategory]);
+
+  return (
+    <div className="space-y-6">
+      <header>
+        <h1 className="text-3xl font-bold tracking-tight text-stone-900">Marketplace products</h1>
+        <p className="mt-2 text-stone-600">
+          Browse handcrafted products, filter by craft, and discover artisan stories.
+        </p>
+      </header>
+
+      <section className="rounded-2xl border border-stone-200 bg-white p-4 shadow-sm sm:p-5">
+        <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
+          <input
+            type="search"
+            value={searchTerm}
+            onChange={(event) => setSearchTerm(event.target.value)}
+            placeholder="Search products..."
+            className="w-full rounded-md border border-stone-300 px-3 py-2 text-sm focus:border-amber-600 focus:outline-none"
+          />
+          <select
+            value={selectedCategory}
+            onChange={(event) => setSelectedCategory(event.target.value as "All" | ProductCategory)}
+            className="rounded-md border border-stone-300 px-3 py-2 text-sm focus:border-amber-600 focus:outline-none"
+          >
+            <option value="All">All categories</option>
+            {productCategories.map((category) => (
+              <option key={category} value={category}>
+                {category}
+              </option>
+            ))}
+          </select>
+        </div>
+      </section>
+
+      <section>
+        {filteredProducts.length === 0 ? (
+          <div className="rounded-2xl border border-dashed border-stone-300 bg-white p-10 text-center text-stone-600">
+            No products match your search.
+          </div>
+        ) : (
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {filteredProducts.map((product) => (
+              <ProductCard key={product.id} product={product} />
+            ))}
+          </div>
+        )}
+      </section>
+    </div>
+  );
+}
+
+
+===== FILE: components/site-header.tsx =====
+"use client";
+
+import Link from "next/link";
+import { useCart } from "@/components/cart-provider";
+
+const navLinks = [
+  { label: "Home", href: "/" },
+  { label: "Products", href: "/products" },
+  { label: "Admin", href: "/admin/products" },
+  { label: "Checkout", href: "/checkout" },
+];
+
+export function SiteHeader() {
+  const { itemCount } = useCart();
+
+  return (
+    <header className="sticky top-0 z-20 border-b border-amber-100 bg-white/90 backdrop-blur">
+      <div className="mx-auto flex w-full max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-4 sm:px-6 lg:px-8">
+        <Link href="/" className="text-lg font-bold tracking-tight text-amber-900">
+          L’Artisan Indien
+        </Link>
+        <nav className="flex items-center gap-4 text-sm font-medium text-stone-700">
+          {navLinks.map((link) => (
+            <Link key={link.href} href={link.href} className="transition hover:text-amber-700">
+              {link.label}
+            </Link>
+          ))}
+          <Link
+            href="/cart"
+            className="rounded-full bg-amber-700 px-3 py-1.5 text-white transition hover:bg-amber-800"
+          >
+            Cart ({itemCount})
+          </Link>
+        </nav>
+      </div>
+    </header>
+  );
+}
+
+
+===== FILE: lib/data.ts =====
+import { Artisan, Product, ProductCategory } from "@/lib/types";
+
+export const appIdentity =
+  "L’Artisan Indien (Hastkala): An Online Marketplace for Indian Handcrafted Products";
+
+export const artisans: Artisan[] = [
+  {
+    id: "artisan-jaipur-blue-pottery",
+    name: "Ritika Sharma",
+    region: "Jaipur, Rajasthan",
+    specialty: "Blue Pottery",
+    bio: "Ritika leads a family workshop that preserves Jaipur blue pottery using hand-painted floral motifs.",
+    avatar: "/images/products/artisan-ritika.svg",
+  },
+  {
+    id: "artisan-banarasi-weaves",
+    name: "Imran Ali",
+    region: "Varanasi, Uttar Pradesh",
+    specialty: "Handloom Weaving",
+    bio: "Imran works with traditional pit looms to create intricate Banarasi-inspired textile pieces.",
+    avatar: "/images/products/artisan-imran.svg",
+  },
+  {
+    id: "artisan-saharanpur-wood",
+    name: "Meera Joshi",
+    region: "Saharanpur, Uttar Pradesh",
+    specialty: "Wood Carving",
+    bio: "Meera combines mango wood craftsmanship with contemporary utility for modern homes.",
+    avatar: "/images/products/artisan-meera.svg",
+  },
+  {
+    id: "artisan-kutch-metalwork",
+    name: "Harshad Bhai",
+    region: "Kutch, Gujarat",
+    specialty: "Metal & Bell Craft",
+    bio: "Harshad creates handcrafted decor and jewelry inspired by Kutch folk forms and desert tones.",
+    avatar: "/images/products/artisan-harshad.svg",
+  },
+];
+
+export const productCategories: ProductCategory[] = [
+  "Pottery",
+  "Textiles",
+  "Woodwork",
+  "Jewelry",
+  "Home Decor",
+];
+
+export const products: Product[] = [
+  {
+    id: "blue-lotus-vase",
+    name: "Blue Lotus Ceramic Vase",
+    category: "Pottery",
+    price: 2499,
+    shortDescription: "Hand-painted Jaipur blue pottery vase with lotus pattern.",
+    description:
+      "A wheel-thrown ceramic vase finished with hand-painted lotus motifs and fired in a low-temperature kiln, ideal for dry flowers and table styling.",
+    materials: ["Quartz clay", "Natural pigments", "Lead-free glaze"],
+    artisanId: "artisan-jaipur-blue-pottery",
+    image: "/images/products/blue-lotus-vase.svg",
+    gallery: [
+      "/images/products/blue-lotus-vase.svg",
+      "/images/products/blue-lotus-vase-detail.svg",
+      "/images/products/blue-lotus-vase-lifestyle.svg",
+    ],
+    collections: ["Festive Gifting", "Heritage Pottery"],
+    featured: true,
+  },
+  {
+    id: "banarasi-runner",
+    name: "Banarasi Table Runner",
+    category: "Textiles",
+    price: 1799,
+    shortDescription: "Silk-cotton runner inspired by Banarasi brocade patterns.",
+    description:
+      "This table runner is woven on handlooms by artisan clusters in Varanasi and finished with soft tassels for festive settings.",
+    materials: ["Silk blend", "Cotton", "Natural dye"],
+    artisanId: "artisan-banarasi-weaves",
+    image: "/images/products/banarasi-runner.svg",
+    gallery: [
+      "/images/products/banarasi-runner.svg",
+      "/images/products/banarasi-runner-detail.svg",
+      "/images/products/banarasi-runner-lifestyle.svg",
+    ],
+    collections: ["Festive Gifting", "Handloom Classics"],
+    featured: true,
+  },
+  {
+    id: "carved-tea-box",
+    name: "Carved Mango Wood Tea Box",
+    category: "Woodwork",
+    price: 2299,
+    shortDescription: "Six-compartment tea organizer with floral hand carving.",
+    description:
+      "Crafted from seasoned mango wood, this tea box features six storage sections and a transparent top panel for display.",
+    materials: ["Mango wood", "Glass", "Natural wax finish"],
+    artisanId: "artisan-saharanpur-wood",
+    image: "/images/products/carved-tea-box.svg",
+    gallery: [
+      "/images/products/carved-tea-box.svg",
+      "/images/products/carved-tea-box-detail.svg",
+      "/images/products/carved-tea-box-lifestyle.svg",
+    ],
+    collections: ["Kitchen & Dining", "Woodcraft Essentials"],
+    featured: true,
+  },
+  {
+    id: "kutch-coin-necklace",
+    name: "Kutch Coin Necklace",
+    category: "Jewelry",
+    price: 1599,
+    shortDescription: "Oxidized brass necklace inspired by Kutch folk coin motifs.",
+    description:
+      "A handcrafted statement necklace with a lightweight chain and intricate coin charms, made for festive and everyday wear.",
+    materials: ["Oxidized brass", "Cotton thread"],
+    artisanId: "artisan-kutch-metalwork",
+    image: "/images/products/kutch-coin-necklace.svg",
+    gallery: [
+      "/images/products/kutch-coin-necklace.svg",
+      "/images/products/kutch-coin-necklace-detail.svg",
+      "/images/products/kutch-coin-necklace-lifestyle.svg",
+    ],
+    collections: ["Everyday Jewelry", "Craft Revival"],
+  },
+  {
+    id: "terracotta-lamp",
+    name: "Terracotta Pendant Lamp",
+    category: "Home Decor",
+    price: 3199,
+    shortDescription: "Hand-molded terracotta lamp shade with earthy matte finish.",
+    description:
+      "This pendant lamp is hand-molded and sun-baked before firing, bringing warm ambient light and artisanal texture to interiors.",
+    materials: ["Terracotta clay", "Jute cord"],
+    artisanId: "artisan-jaipur-blue-pottery",
+    image: "/images/products/terracotta-lamp.svg",
+    gallery: [
+      "/images/products/terracotta-lamp.svg",
+      "/images/products/terracotta-lamp-detail.svg",
+      "/images/products/terracotta-lamp-lifestyle.svg",
+    ],
+    collections: ["Home Refresh", "Heritage Pottery"],
+    featured: true,
+  },
+  {
+    id: "ajrakh-cushion-cover",
+    name: "Ajrakh Cushion Cover Set",
+    category: "Textiles",
+    price: 1399,
+    shortDescription: "Block-printed cotton cushion covers in indigo tones.",
+    description:
+      "Set of two hand block-printed cushion covers made with natural indigo and madder dyes using traditional Ajrakh techniques.",
+    materials: ["Cotton", "Natural dyes"],
+    artisanId: "artisan-banarasi-weaves",
+    image: "/images/products/ajrakh-cushion-cover.svg",
+    gallery: [
+      "/images/products/ajrakh-cushion-cover.svg",
+      "/images/products/ajrakh-cushion-cover-detail.svg",
+      "/images/products/ajrakh-cushion-cover-lifestyle.svg",
+    ],
+    collections: ["Home Refresh", "Handloom Classics"],
+  },
+  {
+    id: "wooden-serving-platter",
+    name: "Hand-Carved Serving Platter",
+    category: "Woodwork",
+    price: 1899,
+    shortDescription: "Acacia serving platter with hand-chiseled border detail.",
+    description:
+      "A versatile serving platter crafted by hand with smooth food-safe finishing and subtle carved motifs around the edges.",
+    materials: ["Acacia wood", "Food-safe oil"],
+    artisanId: "artisan-saharanpur-wood",
+    image: "/images/products/wooden-serving-platter.svg",
+    gallery: [
+      "/images/products/wooden-serving-platter.svg",
+      "/images/products/wooden-serving-platter-detail.svg",
+      "/images/products/wooden-serving-platter-lifestyle.svg",
+    ],
+    collections: ["Kitchen & Dining", "Woodcraft Essentials"],
+  },
+  {
+    id: "dokra-candle-stand",
+    name: "Dokra Candle Stand",
+    category: "Home Decor",
+    price: 2099,
+    shortDescription: "Tribal brass dokra candle stand cast in lost-wax style.",
+    description:
+      "A handcrafted decor piece made using traditional dokra casting that adds a warm handcrafted accent to shelves and dining tables.",
+    materials: ["Brass", "Natural polish"],
+    artisanId: "artisan-kutch-metalwork",
+    image: "/images/products/dokra-candle-stand.svg",
+    gallery: [
+      "/images/products/dokra-candle-stand.svg",
+      "/images/products/dokra-candle-stand-detail.svg",
+      "/images/products/dokra-candle-stand-lifestyle.svg",
+    ],
+    collections: ["Craft Revival", "Festive Gifting"],
+  },
+];
+
+export const featuredProducts = products.filter((product) => product.featured);
+
+export const featuredCollections = [
+  {
+    name: "Festive Gifting",
+    description: "Curated handmade gifts for celebrations and special occasions.",
+  },
+  {
+    name: "Heritage Pottery",
+    description: "Traditional clay and ceramic work from artisan clusters.",
+  },
+  {
+    name: "Home Refresh",
+    description: "Textiles and decor pieces that transform everyday spaces.",
+  },
+];
+
+export const getProductById = (id: string) =>
+  products.find((product) => product.id === id);
+
+export const getArtisanById = (id: string) =>
+  artisans.find((artisan) => artisan.id === id);
+
+export const getRelatedProducts = (productId: string, category: ProductCategory) =>
+  products.filter((product) => product.category === category && product.id !== productId).slice(0, 3);
+
+
+===== FILE: lib/format.ts =====
+export const formatPrice = (price: number) =>
+  new Intl.NumberFormat("en-IN", {
+    style: "currency",
+    currency: "INR",
+    maximumFractionDigits: 0,
+  }).format(price);
+
+
+===== FILE: lib/types.ts =====
+export type ProductCategory = "Pottery" | "Textiles" | "Woodwork" | "Jewelry" | "Home Decor";
+
+export interface Artisan {
+  id: string;
+  name: string;
+  region: string;
+  specialty: string;
+  bio: string;
+  avatar: string;
+}
+
+export interface Product {
+  id: string;
+  name: string;
+  category: ProductCategory;
+  price: number;
+  shortDescription: string;
+  description: string;
+  materials: string[];
+  artisanId: string;
+  image: string;
+  gallery: string[];
+  collections: string[];
+  featured?: boolean;
+}
+
+
+===== FILE: README.md =====
+# L’Artisan Indien (Hastkala)
+
+L’Artisan Indien (Hastkala): An Online Marketplace for Indian Handcrafted Products.
+
+This repository contains a production-ready MVP starter built with Next.js, TypeScript, and Tailwind CSS.
+
+## Features
+
+- Modern Next.js App Router setup with TypeScript and Tailwind CSS
+- Homepage with hero, featured collections, featured products, and artisan highlights
+- Product listing page with client-side search and category filter UI
+- Product detail page with gallery, product details, artisan story, and related products
+- Shopping cart and checkout flow UI using browser persistence
+- Basic admin product management page for creating and editing listings locally
+- Seeded handcrafted products and artisan profiles for instant demo
+- Responsive layouts for mobile and desktop
+
+## Project Structure
+
+- `/app` - Route pages (home, products, product detail, cart, checkout, admin)
+- `/components` - Reusable UI components and cart/admin client state
+- `/lib` - Seed data, types, and formatting utilities
+- `/public/images/products` - Local SVG assets for products and artisans
+
+## Getting Started
+
+1. Install dependencies:
+
+   ```bash
+   npm install
+   ```
+
+2. Copy environment template:
+
+   ```bash
+   cp .env.example .env.local
+   ```
+
+3. Start development server:
+
+   ```bash
+   npm run dev
+   ```
+
+4. Open [http://localhost:3000](http://localhost:3000)
+
+## Scripts
+
+- `npm run dev` - Start local development server
+- `npm run build` - Build for production
+- `npm run start` - Run the production build
+- `npm run lint` - Run ESLint
+
+## Notes
+
+- Core demo functionality does not depend on external services.
+- Cart and admin-created products are persisted in browser local storage for MVP demonstration.
+
+
+===== FILE: package.json =====
+{
+  "name": "lartisan-indien",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint"
+  },
+  "dependencies": {
+    "next": "16.4.0",
+    "react": "19.3.0",
+    "react-dom": "19.3.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/turbopack": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.4.0",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  }
+}
+
+
+===== FILE: tsconfig.json =====
+{
+  "compilerOptions": {
+    "target": "ES2017",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "react-jsx",
+    "incremental": true,
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "paths": {
+      "@/*": ["./*"]
+    }
+  },
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts",
+    ".next/dev/types/**/*.ts",
+    "**/*.mts"
+  ],
+  "exclude": ["node_modules"]
+}
+
+
+===== FILE: next.config.ts =====
+import type { NextConfig } from "next";
+
+const nextConfig: NextConfig = {
+  /* config options here */
+  cacheComponents: true,
+  partialPrefetching: true,
+  turbopack: {
+    rules: {
+      "*.css": {
+        loaders: ["@tailwindcss/turbopack"],
+        as: "*.css",
+      },
+    },
+  },
+};
+
+export default nextConfig;
+
+
+===== FILE: eslint.config.mjs =====
+import { defineConfig, globalIgnores } from "eslint/config";
+import nextVitals from "eslint-config-next/core-web-vitals";
+import nextTs from "eslint-config-next/typescript";
+
+const eslintConfig = defineConfig([
+  ...nextVitals,
+  ...nextTs,
+  // Override default ignores of eslint-config-next.
+  globalIgnores([
+    // Default ignores of eslint-config-next:
+    ".next/**",
+    "out/**",
+    "build/**",
+    "next-env.d.ts",
+  ]),
+]);
+
+export default eslintConfig;
+
+
