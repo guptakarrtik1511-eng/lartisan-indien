@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 800 600" fill="none">
+  <rect width="800" height="600" rx="24" fill="#FDECD2"/>
+  <rect x="40" y="40" width="720" height="520" rx="20" fill="#FFF8EC" stroke="#D97706" stroke-width="4"/>
+  <circle cx="400" cy="240" r="96" fill="#FDBA74"/>
+  <path d="M320 380C340 330 460 330 480 380" stroke="#92400E" stroke-width="16" stroke-linecap="round"/>
+  <text x="400" y="470" text-anchor="middle" fill="#78350F" font-family="Arial, sans-serif" font-size="28" font-weight="700">wooden-serving-platter</text>
+</svg>
